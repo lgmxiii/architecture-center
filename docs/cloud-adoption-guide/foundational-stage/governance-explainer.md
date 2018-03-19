@@ -18,11 +18,11 @@ RBAC roles are assigned to users or groups of users, and define which capabiliti
 
 Resource policies defines rules for resource creation. For example, a resource policy can limit the SKU of a VM to a particular pre-appproved size. Or, a resource policy can enforce the addition of a tag with a cost center when the request is made to create the resource. 
 
-The combination of these define which users in your organization have permission to perform operations on a policy-restricted set of resources.     
+The combination of these define which users in your organization have permission to perform operations on a policy-restricted set of resources.  
 
 When configuring these tools, an important consideration is organizational agility. As access to resources is more "locked down", the more manual steps are required for your developers and IT workers to gain access to them. For example, if your organization decides to allow only a single person to create resources in Azure, all requests must go through that single person. That single person has finite capabilities and may become backlogged. This will result in unproductive teams waiting for their resources to be created and unneeded resources accruing costs while they wait to be deleted. 
 
-A better balance between agility and governance is possible by implementing self-service, managed and monitored by Azure governance tools. This enables your developers and IT to manage their resources in an agile manner while ensuring that costs are controlled and policies are complied with.
+A better balance between agility and governance is possible by implementing self-service, managed and monitored by Azure governance tools. This enables your developers and IT to manage their resources in an agile manner while ensuring that policies are complied with and costs are controlled.
 
 ## Scope of governance
 
