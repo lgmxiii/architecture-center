@@ -10,25 +10,17 @@ For an organization that is new to the cloud, it can be difficult to figure out 
 
 The audience for this stage of the guide is the following personas within your organization:
 
-- *Finance*: owner of the financial commitment to Azure, responsible for developing policies and procedures for tracking resource consumption costs including billing and chargeback.
-- *Central IT*: responsible for governing your organizatin's cloud resources including resource management and access, and workload health and monitoring.
-- *Workload owners*: all development roles that are involved in deploying workloads to Azure, including developers, testers, and build engineering.
+- *Finance:* owner of the financial commitment to Azure, responsible for developing policies and procedures for tracking resource consumption costs including billing and chargeback.
+- *Central IT:* responsible for governing your organizatin's cloud resources including resource management and access, and workload health and monitoring.
+- *Workload owners:* all development roles that are involved in deploying workloads to Azure, including developers, testers, and build engineers.
 
 ## Section 1: Understanding Azure and the concept of cloud goverance
 
-This introductory section is intended for the *finance* and *central IT* personas. The focus of this section is acquiring a basic understanding of how Azure works in preparation for learning how to design your organization's governance architecture. It may also be useful for the *workload owners* in your organization to review this content to help them understand how access to resources is managed.
-
-* Understand Azure platform internals:
-    - **Explainer:** [how does Azure work?](azure-explainer.md)
-* Understand the concept of cloud governance:
-    - **Explainer:** [what is cloud resource governance?](governance-explainer.md)
+This introductory section is intended for the *finance* and *central IT* personas. The focus of this section is acquiring a basic understanding of [how Azure works](azure-explainer.md) in preparation for learning about the [concept of cloud governance](governance-explainer.md). It may also be useful for the *workload owners* in your organization to review this content to help them understand how resource access is managed.
 
 ## Section 2: Understanding governance design
 
-This audience for this section is the *central IT* persona. *Central IT* is responsible for designing your organization's goverance architecture. 
-
-* Foundational governance design overview:
-    - **How to:** [foundational goverance design guide](governance-how-to.md)
+This audience for this section is the *central IT* persona. *Central IT* is responsible for [designing your organization's goverance architecture](governance-how-to.md). 
 
 ## Section 3: Deploy a basic workload architecture to Azure
 
