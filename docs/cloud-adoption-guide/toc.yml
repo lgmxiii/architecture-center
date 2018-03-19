@@ -13,7 +13,7 @@
         - name: "Explainer: how does Azure work?"
           href: foundational-stage/azure-explainer.md
         - name: "Explainer: what is cloud resource governance?"
-          href: foundational-stage/goverance-explainer.md
+          href: foundational-stage/governance-explainer.md
       - name: "Section 2: understanding Azure governance design"
         items:
         - name: "How to: foundational Azure goverance design guide"
@@ -46,7 +46,7 @@
     href: intermediate-stage/overview.md
     items:
       - name: "Understanding Azure internals: software-defined networking"
-        href: sdn-explainer.md
+        href: intermediate-stage/sdn-explainer.md
       - name: Understanding workload isolation in Azure
         href:
       - name: "Understanding digital identity: intermediate"
