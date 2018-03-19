@@ -23,12 +23,12 @@ This introductory section is intended for the *finance* and *central IT* persona
 * Understand the concept of cloud governance:
     - **Explainer:** [what is cloud resource governance?](governance-explainer.md)
 
-## Section 2: Foundational governance design overview
+## Section 2: Understanding governance design
 
 This audience for this section is the *central IT* persona. *Central IT* is responsible for designing your organization's goverance architecture. 
 
 * Foundational governance design overview:
-    - **How to:** [design Azure governance architecture for the foundational adoption stage](governance-how-to.md)
+    - **How to:** [foundational goverance design guide](governance-how-to.md)
 
 ## Section 3: Deploy a basic workload architecture to Azure
 
@@ -44,7 +44,7 @@ For a PaaS basic web application, select one of the 5-minute quickstarts from th
 
 ### IaaS single Windows or Linux VM
 
-For an IaaS simple workload, the first step is to deploy a virtual network. All IaaS resources in Azure such as virtual machines, load balancers, and gateways require a virtual network. Learn about [Azure virtual networks](/azure/virtual-network/virtual-networks-overview?toc=/azure/architecture/cloud-adoption-guide/toc.json), and then follow the steps to [deploy a Virtual Network to Azure using the portal](/azure/virtual-network/virtual-networks-create-vnet-arm-portal?toc=/azure/architecture/cloud-adoption-guide/toc.json).
+For an IaaS simple workload, the first step is to deploy a virtual network. All IaaS resources in Azure such as virtual machines, load balancers, and gateways require a virtual network. Learn about [Azure virtual networks](/azure/virtual-network/virtual-networks-overview?toc=/azure/architecture/cloud-adoption-guide/toc.json), and then follow the steps to [deploy a Virtual Network to Azure using the portal](/azure/virtual-network/quick-create-portal?toc=/azure/architecture/cloud-adoption-guide/toc.json).
 
 The next step is to decide whether to deploy a single Windows or Linux VM. For a Windows VM, follow the steps to [deploy a Windows VM to Azure with the portal](/azure/virtual-machines/windows/quick-create-portal?toc=/azure/architecture/cloud-adoption-guide/toc.json). Once you've followed the steps and deployed the VM, you can learn about [proven practices for running a Windows VM on Azure](/azure/architecture/reference-architectures/virtual-machines-windows/single-vm?toc=/azure/architecture/cloud-adoption-guide/toc.json). For a Linux VM, follow the steps to [deploy a Linux VM to Azure with the portal](/azure/virtual-machines/linux/quick-create-portal?toc=/azure/architecture/cloud-adoption-guide/toc.json). You can also learn more about [proven practices for running a Linux VM on Azure](/azure/architecture/reference-architectures/virtual-machines-linux/single-vm?toc=/azure/architecture/cloud-adoption-guide/toc.json).
 
