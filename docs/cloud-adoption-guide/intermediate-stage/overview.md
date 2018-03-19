@@ -16,6 +16,7 @@ The list below includes the tasks for completing the intermediate adoption stage
     - **Explainer:** what is a workload, and what does it mean to have multiple workloads hosted in Azure?
         - now that you understand how software-defined networking works, you can see that one strategy for segmenting the network space for multiple workloads is either by full network space (VNet) or by subnet space.
         - do you have multiple VNets and assign a VNet to team, or, a single Vnet with multiple subnets and assign a subnet to a team
+* x. [Understanding resource access in Azure](/azure/active-directory/active-directory-understanding-resource-access)
 * x. Understanding digital identity: intermediate
     - **Explainer:** now that you understand what multiple workloads look like, and how multiple teams will be working concurrently, what are some of the scenarios in which you would want to have multiple AAD tenants?
         - reasons why you would have multiple tenants, and how to manage multiple tenants (i.e. teams in multiple regions, teams in different subsidiaries, etc.)
