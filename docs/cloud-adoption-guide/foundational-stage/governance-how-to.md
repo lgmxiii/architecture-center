@@ -4,7 +4,7 @@ description: Guidance for configuring Azure governance controls to enable a user
 author: petertay
 ---
 
-# How to: design Azure governance architecture for the foundational adoption stage
+# Azure governance design guide for the foundational adoption stage
 
 The audience for this design guide is the *central IT* persona in your organization. *Central IT* is responsible for designing and implementing your organization's cloud governance architecture. As you learned in the [what is cloud resource governance?](governance-explainer.md) explainer, governance refers to the ongoing process of managing, monitoring, and auditing the use of Azure resources to meet the goals and requirements of your organization.
 
@@ -63,8 +63,8 @@ All other users that work with the *workload owner* persona should have the leas
 
 ## Cost tracking
 
-As discussed earlier, a subscription is the top level of management scope in Azure. However, a subscription is also used to manage **cost** and apply an upper limit to the number of specific resources that can be deployed.
+Our requirement is for cost tracking in our simple workload. As discussed earlier, a subscription is the top level of management scope in Azure, and a subscription is also used to manage **cost** and apply an upper limit to the number of specific resources that can be deployed. Therefore, the use of a single resource group already designed earlier satisfies this requirement.
 
 ## Next steps
 
-* Return to the [foundational adoption stage overview]() and learn about the different types of compute options in Azure. Then, select a type of workload and learn how to deploy it.
+Return to the [foundational adoption stage overview](overview.md) and learn about the different types of compute options in Azure. Then, select a type of workload and learn how to deploy it.
