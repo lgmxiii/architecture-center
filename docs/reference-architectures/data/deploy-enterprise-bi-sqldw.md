@@ -1,16 +1,8 @@
 ---
 title: Gain business insights from relational data
-description: >-
-  How to gain business insights from relational data, paying attention to scalability, resiliency,
-  manageability, and security.
-
+description: Gain business insights from relational data
 author: alexbuckgit
-
 ms.date: 03/21/2018
-
- pnp.series.title: Data reference architectures
- pnp.series.next: 
- pnp.series.prev: ./index
 ---
 
 ## Deploy the solution
@@ -38,18 +30,11 @@ Perform these prequisite steps before deploying the reference architecture to yo
 
 ### Deploy the simulated on-premises server using azbb
 
-First you'll deploy a virtual machine as a simulated on-premises server, which includes SQL Server 2017 and related tools. To deploy this virtual machine, follow these steps:
+First you'll deploy a virtual machine as a simulated on-premises server, which includes SQL Server 2017 and related tools. This step also loads the sample [Wide World Importers OLTP database](/sql/sample/world-wide-importers/wide-world-importers-oltp-database) into SQL Server.
 
 1. Navigate to the `data\enterprise-bi-sqldw\onprem\templates` folder of the repository you downloaded in the prerequisites above.
 
-2. Edit the `onprem.parameters.json` file to add a user name and password between the quotes, as shown below.
-    
-    ```bash
-    "adminUsername": "",
-    "adminPassword": "",
-    ```
-
-      Also change the values in the `SqlUserCredentials` section to match the user name and password you chose above. Note the `.\\` prefix in the userName property.
+2. In the `onprem.parameters.json` file, replace the values for `adminUsername` and `adminPassword`. Also change the values in the `SqlUserCredentials` section to match the user name and password. Note the `.\\` prefix in the userName property.
     
     ```bash
     "SqlUserCredentials": {
@@ -64,31 +49,37 @@ First you'll deploy a virtual machine as a simulated on-premises server, which i
     azbb -s <subscription_id> -g <resource_group_name> -l <location> -p onprem.parameters.json --deploy
     ```
 
-4. Verify the deployment in the Azure portal by reviewing the resources in the resource group you specified above. You should see the `sql-vm1` virtual machine and its associated resources.
+4. The deployment may take 20 to 30 minutes to complete, which includes running the [Desired State Configuration](/powershell/dsc/overview) (DSC) to install the tools and restore the database. Verify the deployment in the Azure portal by reviewing the resources in the resource group. You should see the `sql-vm1` virtual machine and its associated resources.
 
 ### Deploy the Azure resources
 
+This step provisions Azure SQL Data Warehouse and Azure Analysis Services, along with a Storage account. If you want, you can run this step in parallel with the previous step.
+
 1. Navigate to the `data\enterprise-bi-sqldw\azure\templates` folder of the repository you downloaded in the prerequisites above.
 
-2. If the resource group for your Azure resources doesn't exist yet, run the Azure CLI command below to create the resource group, replacing the bracketed parameters specified. Note that you can deploy to a different resource group or location than you used for the on-premises server that you deployed previously. 
+2. Run the following Azure CLI command to create a resource group, replacing the bracketed parameters specified. Note that you can deploy to a different resource group than you used for the on-premises server in the previous step. 
 
     ```bash
     az group create --name <resource_group_name> --location <location>  
     ```
 
-3. Run the Azure CLI command below to deploy the Azure resources, replacing the bracketed parameters specified. Note that the `storageAccountName` value must be between 3 and 24 characters long and is limited to numbers and lowercase letters only.
+3. Run the following Azure CLI command to deploy the Azure resources, replacing the bracketed parameters specified. The `storageAccountName` parameter must follow the [naming rules](../../best-practices/naming-conventions.md#naming-rules-and-restrictions) for Storage accounts. For the `analysisServerAdmin` parameter, use your Azure Active Directory user principal name (UPN).
 
     ```bash
-    az group deployment create --resource-group <resource_group_name> --template-file azure-resources-deploy.json --parameters "dwServerName"="<dw_server_name>" "dwServerAdmin"="<dw_server_admin_username>" "dwServerPassword"="<dw_server_admin_password>" "storageAccountName"="<storage_account_name>" "analysisServerName"="<analysis_server_name>" "analysisServerAdmin"="exampleusername@contoso.com"
+    az group deployment create --resource-group <resource_group_name> --template-file azure-resources-deploy.json --parameters "dwServerName"="<server_name>" "dwAdminLogin"="<admin_username>" "dwAdminPassword"="<password>" "storageAccountName"="<storage_account_name>" "analysisServerName"="<analysis_server_name>" "analysisServerAdmin"="user@contoso.com"
     ```
 
-4. Verify the deployment in the Azure portal by reviewing the resources in the resource group you specified above. You should see the storage account, Azure SQL Data Warehouse instance, and Analysis Services instance that were created.
+4. Verify the deployment in the Azure portal by reviewing the resources in the resource group. You should see a storage account, Azure SQL Data Warehouse instance, and Analysis Services instance.
+
+5. Use the Azure portal to get the access key for the storage account. Select the storage account to open it. Under **Settings**, select **Access keys**. Copy the primary key value. You will use it in the next step.
 
 ### Export the source data to Azure Blob storage 
 
-1. Use Remote Desktop to connect to the simulated on-premises server you created previously.
+In this step, you will run a PowerShell script that uses bcp to export the SQL database to flat files on the VM, and then uses AzCopy to copy those files into Azure Blob Storage.
 
-2. To copy the source data from the SQL Server database into Azure Blob storage via `bcp` and `azcopy`, run the commands below from a PowerShell prompt on the server, replacing the bracketed parameters specified. You can find the storage account key via the "Access keys" setting for the storage account in the Azure portal.  
+1. Use Remote Desktop to connect to the simulated on-premises VM you created previously.
+
+2. While logged into the VM, run the following commands from a PowerShell window.  
 
     ```powershell
     cd 'C:\SampleDataFiles\reference-architectures\data\enterprise_bi_sqldw\onprem'
@@ -96,26 +87,46 @@ First you'll deploy a virtual machine as a simulated on-premises server, which i
     .\Load_SourceData_To_Blob.ps1 -File .\sql_scripts\db_objects.txt -Destination 'https://<storage_account_name>.blob.core.windows.net/wwi' -StorageAccountKey '<storage_account_key>'
     ```
 
-3. In the Azure portal, verify that the source data was copied to Blob storage by navigating to the storage account you specified, selecting the Blob service, and opening the `wwi` container. You should see a list of tables prefaced with `WorldWideImporters_Application_*`.
+    For the `Destination` parameter, replace `<storage_account_name>` with the name the Storage account that you created previously. For the `StorageAccountKey` parameter, use the access key for that Storage account.
+
+3. In the Azure portal, verify that the source data was copied to Blob storage by navigating to the storage account, selecting the Blob service, and opening the `wwi` container. You should see a list of tables prefaced with `WorldWideImporters_Application_*`.
 
 ### Execute the data warehouse scripts
 
-1. From your Remote Desktop session, open SQL Server Management Studio (SSMS) via the Windows start menu. Connect to the database engine for the SQL Data Warehouse, using the fully qualified version of the `dwServerName` value you specified above (for example, `examplesqldw1.database.windows.net`) along with the credentials you specified for `dwServerAdmin` and `dwServerPassword`.
+1. From your Remote Desktop session, launch SQL Server Management Studio (SSMS). 
 
-2. Navigate to the `C:\Repos\reference-architectures\data\enterprise_bi_sqldw\azure\sqldw_scripts` folder on the on-premises server. You will execute the scripts in this folder in numerical order (`STEP_1` through `STEP_7`) as indicated below.
+2. Connect to SQL Data Warehouse
 
-3. Open the `STEP_1` script in a query window. Select the `master` database in SSMS and execute the script.
+    - Server type: Database Engine
+    - Server name: `<dwServerName>.database.windows.net`, where `<dwServerName>` is the name that you specified when you deployed the Azure resources. You can get this name from the Azure portl.
+    - Authentication: SQL Server Authentication
 
-4. Open the `STEP_2` script in a query window. Select the `wwi` database in SSMS and execute the script.
+    Use the credentials that you specified when you deployed the Azure resources (`dwAdminLogin` and `dwAdminPassword`.
 
-5. In SSMS, open a new connection to the database engine for the SQL Data Warehouse, using the `LoaderRC20` user and the password indicated in the `STEP_1` script.  
-    a. Open the `STEP_3` script in a query window for this connection.  
-    b. In the script, set the SECRET value to your storage account key.  
-    c. In the script, set the LOCATION value to specify your storage account container using the format "wasbs://wwi@`your_storage_account_name`.blob.core.windows.net".
+2. Navigate to the `C:\SampleDataFiles\reference-architectures\data\enterprise_bi_sqldw\azure\sqldw_scripts` folder on the VM. You will execute the scripts in this folder in numerical order (`STEP_1` through `STEP_7`).
 
-6. Execute scripts STEP_4 through STEP_7 sequentially using an SSMS query window for the same connection.
+3. Select the `master` database in SSMS and open the `STEP_1` script. Change the value of the password in the following line, then execute the script.
 
-7. In SMSS, you should see a set of `prd.*` tables in the `wwi` database. Verify that the data was generated by running a test query such as `SELECT TOP 10 * FROM prd.CityDimensions`.
+    ```sql
+    CREATE LOGIN LoaderRC20 WITH PASSWORD = '<change this value>';
+    ```
+
+4. Select the `wwi` database in SSMS. Open the `STEP_2` script and execute the script. If you get an error, make sure you are running the script against the `wwi` database and not `master`.
+
+5. Open a new connection to SQL Data Warehouse, using the `LoaderRC20` user and the password indicated in the `STEP_1` script.
+
+6. Using this connection, open the `STEP_3` script. Set the following values in the script:
+
+    - SECRET: Use the access key for your storage account.
+    - LOCATION: Use the name of the storage account as follows: `wasbs://wwi@<storage_account_name>.blob.core.windows.net`.
+
+7. Using the same connection, execute scripts `STEP_4` through `STEP_7` sequentially. Verify that each script completes successfully before running the next.
+
+In SMSS, you should see a set of `prd.*` tables in the `wwi` database. To verify that the data was generated, run the following query: 
+
+```sql
+SELECT TOP 10 * FROM prd.CityDimensions
+```
 
 ### Build the Azure Analysis Services model
 
