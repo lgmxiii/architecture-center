@@ -130,6 +130,8 @@ SELECT TOP 10 * FROM prd.CityDimensions
 
 ### Build the Azure Analysis Services model
 
+In this step, you will create a tabular model that imports data from the data warehouse. Then you will deploy the model to Azure Analysis Services.
+
 1. From your Remote Desktop session, launch SQL Server Data Tools 2015.
 
 2. Select **File** > **New** > **Project**.
@@ -175,19 +177,49 @@ SELECT TOP 10 * FROM prd.CityDimensions
 
     ![](./images/analysis-services-models.png)
 
-### Analyze the data via Power BI Desktop
+### Analyze the data in Power BI Desktop
 
-1. From the Windows start menu on the on-premises server, open **Power BI Desktop**.
-2. In the **Visualizations** pane, select the **Stacked Bar Chart** icon. Resize the workspace to make it larger.
-3. In the Home ribbon tab, select **Get Data -> Analysis Services**.
+In this step, you will use Power BI to create a report from the data in Analysis Services.
+
+1. From your Remote Desktop session, launch Power BI Desktop.
+
+2. In the Welcome Scren, click **Get Data**.
+
+3. Select **Azure** > **Azure Analysis Services database**. Click **Connect**
+
+    ![](./images/power-bi-get-data.png)
+
 4. Enter the URL of your Analysis Services instance, then click **OK**. Sign into Azure if prompted.
-5. In the Navigator window, expand the tabular project that you deployed, select the model that you created, and click **OK**.
-6. In the Fields pane, expand **prd.CityDimensions**.
-    a. Drag the **WWI City ID** field to below the Axis label.
-    b. Drag the **City** field to below to below the Legend label.
-7. In the Fields pane, expand **prd.SalesFact**, and drag the **Total Excluding Tax** field to below the Value label.
-8. Under Visual Level Filters, select **WWI City ID**, set the **Filter Type** to `Top N`, and set **Show Items** to `Top 10`.
-9. From **prd.SalesFact**, drag the **Total Excluding Tax** field to below the **By Value** label, and click **Apply Filter**.
+
+5. In the **Navigator** dialog, expand the tabular project that you deployed, select the model that you created, and click **OK**.
+
+2. In the **Visualizations** pane, select the **Stacked Bar Chart** icon. In the Report view, resize the visualization to make it larger.
+
+6. In the **Fields** pane, expand **prd.CityDimensions**.
+
+7. Drag **prd.CityDimensions** > **WWI City ID** to the **Axis well**.
+
+8. Drag **prd.CityDimensions** > **City** to the **Legend** well.
+
+9. In the Fields pane, expand **prd.SalesFact**.
+
+10. Drag **prd.SalesFact** > **Total Excluding Tax** to the **Value** well.
+
+    ![](./images/power-bi-visualization.png)
+
+11. Under **Visual Level Filters**, select **WWI City ID**.
+
+12. Set the **Filter Type** to `Top N`, and set **Show Items** to `Top 10`.
+
+13. Drag **prd.SalesFact** > **Total Excluding Tax** to the **By Value** well
+
+    ![](./images/power-bi-visualization2.png)
+
+14. Click **Apply Filter**. The visualization shows the top 10 total sales by city.
+
+    ![](./images/power-bi-report.png)
+
+To learn more about Power BI Desktop, see [Getting started with Power BI Desktop](/power-bi/desktop-getting-started).
 
 ## Next steps
 
