@@ -28,7 +28,7 @@ Perform these prequisite steps before deploying the reference architecture to yo
   az login  
   ```
 
-### Deploy the simulated on-premises server using azbb
+### Deploy the simulated on-premises server
 
 First you'll deploy a virtual machine as a simulated on-premises server, which includes SQL Server 2017 and related tools. This step also loads the sample [Wide World Importers OLTP database](/sql/sample/world-wide-importers/wide-world-importers-oltp-database) into SQL Server.
 
@@ -98,12 +98,12 @@ In this step, you will run a PowerShell script that uses bcp to export the SQL d
 2. Connect to SQL Data Warehouse
 
     - Server type: Database Engine
-    - Server name: `<dwServerName>.database.windows.net`, where `<dwServerName>` is the name that you specified when you deployed the Azure resources. You can get this name from the Azure portl.
-    - Authentication: SQL Server Authentication
+    
+    - Server name: `<dwServerName>.database.windows.net`, where `<dwServerName>` is the name that you specified when you deployed the Azure resources. You can get this name from the Azure portal.
+    
+    - Authentication: SQL Server Authentication. Use the credentials that you specified when you deployed the Azure resources, in the `dwAdminLogin` and `dwAdminPassword` parameters.
 
-    Use the credentials that you specified when you deployed the Azure resources (`dwAdminLogin` and `dwAdminPassword`.
-
-2. Navigate to the `C:\SampleDataFiles\reference-architectures\data\enterprise_bi_sqldw\azure\sqldw_scripts` folder on the VM. You will execute the scripts in this folder in numerical order (`STEP_1` through `STEP_7`).
+2. Navigate to the `C:\SampleDataFiles\reference-architectures\data\enterprise_bi_sqldw\azure\sqldw_scripts` folder on the VM. You will execute the scripts in this folder in numerical order, `STEP_1` through `STEP_7`.
 
 3. Select the `master` database in SSMS and open the `STEP_1` script. Change the value of the password in the following line, then execute the script.
 
@@ -130,22 +130,50 @@ SELECT TOP 10 * FROM prd.CityDimensions
 
 ### Build the Azure Analysis Services model
 
-1. From the Windows start menu on the on-premises server, open **SQL Server Data Tools 2015**.
+1. From your Remote Desktop session, launch SQL Server Data Tools 2015.
 
-2. Select **File -> New -> Project -> Templates -> Business Intelligence -> Analysis Services -> Analysis Services Tabular Project**. Name your project and click **OK**.
-3. In the Tabular model designer dialog box, select the **Integrated workspace** option and set the **Compatibility level** to `SQL Server 2017 / Azure Analysis Services (1400)`, then click **OK**.
-4. In the Tabular Model Explorer window, right-click the project and select **Import from Data Source**.
-5. Select **All -> Azure SQL Data Warehouse**, then click **Connect**.
-6. Set the Server value to the fully qualified name of your Azure SQL Data Warehouse, and the Database value to `wwi`, then click **OK**.
-7. In the next dialog box, choose **Database** authentication and enter your Azure SQL Data Warehouse admin user name and password, then click **OK**.
-8. In the Navigator dialog box, select the checkboxes for **prd.CityDimensions**, **prd.DateDimensions**, and **prd.SalesFact**, then click **Load**. When processing is complete, click **Close**. You should now see a tabular view of the data.
-9. In the Tabular Model Explorer window, right-click the project and select **Model View -> Diagram View**.  
-    a. In the diagram view, drag the **[prd.SalesFact].[WWI City ID]** field to the **[prd.CityDimensions].[WWI City ID]** field to create a relationship.  
-    b. Drag the **[prd.SalesFact].[Invoice Date Key]** field to the **[prd.DateDimensions].[Date]** field.  
-    c. From the Visual Studio **File** menu, choose **Save All**.  
-10. In the Solution Explorer window, right-click on the project and select **Properties**. Set the Server property to the URL of your Azure Analysis Services instance. This value is the **Server Name** property of your Analysis Services instance displayed in the Azure portal. Click **OK**.
-11. In the Solution Explorer window, right-click on the project and select **Deploy**. Sign into Azure if prompted. When processing is complete, click **Close**.
-12. In the Azure portal, view the details for your Azure Analysis Services instance. Verify that your model appears in the list of models.
+2. Select **File** > **New** > **Project**.
+
+3. In the **New Project** diaglog, under **Templates**, select  **Business Intelligence** > **Analysis Services** > **Analysis Services Tabular Project**. 
+
+4. Name the project and click **OK**.
+
+5. In the **Tabular model designer** dialog, select **Integrated workspace**  and set **Compatibility level** to `SQL Server 2017 / Azure Analysis Services (1400)`. Click **OK**.
+
+6. In the **Tabular Model Explorer** window, right-click the project and select **Import from Data Source**.
+
+7. Select **Azure SQL Data Warehouse** and click **Connect**.
+
+8. For **Server**, enter fully qualified name of your Azure SQL Data Warehouse server. For **Database**, enter `wwi`. Click **OK**.
+
+9. In the next dialog box, choose **Database** authentication and enter your Azure SQL Data Warehouse admin user name and password, and click **OK**.
+
+10. In the **Navigator** dialog box, select the checkboxes for **prd.CityDimensions**, **prd.DateDimensions**, and **prd.SalesFact**. 
+
+    ![](./images/analysis-services-import.png)
+
+11. Click **Load**. When processing is complete, click **Close**. You should now see a tabular view of the data.
+
+12. In the **Tabular Model Explorer** window, right-click the project and select **Model View** > **Diagram View**.
+
+13. Drag the **[prd.SalesFact].[WWI City ID]** field to the **[prd.CityDimensions].[WWI City ID]** field to create a relationship.  
+
+14. Drag the **[prd.SalesFact].[Invoice Date Key]** field to the **[prd.DateDimensions].[Date]** field.  
+    ![](./images/analysis-services-relations.png)
+
+15. From the **File** menu, choose **Save All**.  
+
+16. In **Solution Explorer**, right-click the project and select **Properties**. 
+
+17. Under **Server**, enter the URL of your Azure Analysis Services instance. You can get this value from the Azure Portal. In the portal, select the Analysis Services resource, click the Overview pane, and look for the **Server Name** property. It will be similar to `asazure://westus.asazure.windows.net/contoso`. Click **OK**.
+
+    ![](./images/analysis-services-properties.png)
+
+18. In **Solution Explorer**, right-click the project and select **Deploy**. Sign into Azure if prompted. When processing is complete, click **Close**.
+
+19. In the Azure portal, view the details for your Azure Analysis Services instance. Verify that your model appears in the list of models.
+
+    ![](./images/analysis-services-models.png)
 
 ### Analyze the data via Power BI Desktop
 
