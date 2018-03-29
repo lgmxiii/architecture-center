@@ -16,11 +16,9 @@ A deployment for this reference architecture is available on [GitHub][ref-arch-r
 
 ### Prerequisites
 
-Perform these prequisite steps before deploying the reference architecture to your subscription.
-
 1. Clone, fork, or download the zip file for the [Azure reference architectures][ref-arch-repo] GitHub repository.
 
-2. Install the [Azure Building Blocks][azbb-wiki].
+2. Install the [Azure Building Blocks][azbb-wiki] (azbb).
 
 3. From a command prompt, bash prompt, or PowerShell prompt, login to your Azure account by using the command below and following the instructions.
 
@@ -136,7 +134,7 @@ In this step, you will create a tabular model that imports data from the data wa
 
 2. Select **File** > **New** > **Project**.
 
-3. In the **New Project** diaglog, under **Templates**, select  **Business Intelligence** > **Analysis Services** > **Analysis Services Tabular Project**. 
+3. In the **New Project** dialog, under **Templates**, select  **Business Intelligence** > **Analysis Services** > **Analysis Services Tabular Project**. 
 
 4. Name the project and click **OK**.
 
