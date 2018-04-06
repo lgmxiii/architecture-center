@@ -1,13 +1,13 @@
 ---
-title: Gain business insights from relational data
-description: Gain business insights from relational data
+title: Enterprise BI with SQL Data Warehouse
+description: Use Azure to gain business insights from relational data stored on-premises
 author: alexbuckgit
 ms.date: 03/21/2018
 ---
 
 # Enterprise BI with SQL Data Warehouse
  
-This reference architecture implements an ELT (extract-load-transform) pipeline that moves the data into SQL Data Warehouse and transforms the data for analysis.
+This reference architecture implements an [ELT](../../data-guide/relational-data/etl.md#extract-load-and-transform-elt) (extract-load-transform) pipeline that moves data from an on-premises SQL Server database into SQL Data Warehouse and transforms the data for analysis. [**Deploy this solution**.](#deploy-the-solution)
 
 ![](./images/enterprise-bi-sqldw.png)
 
