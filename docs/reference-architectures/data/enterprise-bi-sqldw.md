@@ -9,7 +9,9 @@ ms.date: 03/21/2018
  
 This reference architecture implements an ELT (extract-load-transform) pipeline that moves the data into SQL Data Warehouse and transforms the data for analysis.
 
-Scenario: An organization has a large OLTP data set stored in a SQL Server database on premises. The organization wants to use SQL Data Warehouse to perform analysis using Power BI. 
+![](./images/enterprise-bi-sqldw.png)
+
+**Scenario**: An organization has a large OLTP data set stored in a SQL Server database on premises. The organization wants to use SQL Data Warehouse to perform analysis using Power BI. 
 
 This reference architecture is designed for one-time or on-demand jobs. If you need to move data on a continuing basis (hourly or daily), we recommend using Azure Data Factory to define an automated workflow.
 
@@ -21,7 +23,7 @@ This reference architecture is designed for one-time or on-demand jobs. If you n
 
 **Azure SQL Data Warehouse**. SQL Data Warehouse is a distributed system designed to perform analytics on large data. It supports massive parallel processing (MPP), which makes it suitable for running high-performance analytics. 
 
-Consider SQL Data Warehouse when you have large amounts of data (more than 1 TB) and are running an analytics workload. SQL Data Warehouse is not a good fit for OLTP workloads or smaller data sets (< 250GB). For data sets less than 250GB, consider Azure SQL Database or SQL Server.
+Consider SQL Data Warehouse when you have large amounts of data (more than 1 TB) and are running an analytics workload. SQL Data Warehouse is not a good fit for OLTP workloads or smaller data sets (< 250GB). For data sets less than 250GB, consider Azure SQL Database or SQL Server. For more information, see [Data warehousing](../../data-guide/relational-data/data-warehousing.md)
 
 **Azure Analysis Services**. Analysis Services is a full managed service that provides data modeling capabilities and data modeling functionality. It is used to create a semantic model that can users can query to gain insight. Analysis Services is especially useful in a BI dashboard scenario. In this architecture, Analysis Service reads data from the data warehouse to process the semantic model, and efficiently serves dashboard queries. It also supports elastic concurrency, by scaling out replicas for faster query processing.
 
