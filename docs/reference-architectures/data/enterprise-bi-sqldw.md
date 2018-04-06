@@ -21,13 +21,13 @@ The architecture consists of the following components.
 
 **SQL Server**. The source data is located in a SQL Server database on premises. To simulate the on-premises environment, the deployment scripts for this architecture provision a virtual machine in Azure with SQL Server installed. 
 
-**Blob Storage**. Before moving the data in SQL Data Warehouse, it is copied over the network into Blob storage. 
+**Blob Storage**. Before moving the data into SQL Data Warehouse, it is copied over the network into Blob storage. 
 
 **Azure SQL Data Warehouse**. SQL Data Warehouse is a distributed system designed to perform analytics on large data. It supports massive parallel processing (MPP), which makes it suitable for running high-performance analytics. 
 
-Consider SQL Data Warehouse when you have large amounts of data (more than 1 TB) and are running an analytics workload. SQL Data Warehouse is not a good fit for OLTP workloads or smaller data sets (< 250GB). For data sets less than 250GB, consider Azure SQL Database or SQL Server. For more information, see [Data warehousing](../../data-guide/relational-data/data-warehousing.md).
+Consider SQL Data Warehouse when you have large amounts of data (more than 1 TB) and are running an analytics workload that will benefit from parallelism. SQL Data Warehouse is not a good fit for OLTP workloads or smaller data sets (< 250GB). For data sets less than 250GB, consider Azure SQL Database or SQL Server. For more information, see [Data warehousing](../../data-guide/relational-data/data-warehousing.md).
 
-**Azure Analysis Services**. Analysis Services is a full managed service that provides data modeling capabilities and data modeling functionality. It is used to create a semantic model that can users can query to gain insight. Analysis Services is especially useful in a BI dashboard scenario. In this architecture, Analysis Service reads data from the data warehouse to process the semantic model, and efficiently serves dashboard queries. It also supports elastic concurrency, by scaling out replicas for faster query processing.
+**Azure Analysis Services**. Analysis Services is a full managed service that provides data modeling capabilities. Use Analysis Services to create a semantic model that users can query. Analysis Services is especially useful in a BI dashboard scenario. In this architecture, Analysis Service reads data from the data warehouse to process the semantic model, and efficiently serves dashboard queries. It also supports elastic concurrency, by scaling out replicas for faster query processing.
 
 Currently, Azure Analysis Services supports tabular models but not multidimensional models. Tabular models use relational modeling constructs (tables and columns), whereas multidimensional models use OLAP modeling constructs (cubes, dimensions, and measures). If you require multidimensional models, use SQL Server Analysis Services (SSAS). For more information, see [Comparing tabular and multidimensional solutions](/sql/analysis-services/comparing-tabular-and-multidimensional-solutions-ssas).
 
@@ -124,9 +124,9 @@ FROM ext.Application_PaymentMethods
 
 **Recommendations**
 
-Create the staging tables as heap tables, which are not indexed. Step 3 involves a full table scan, so there is no reason to index the staging tables.
+Create the staging tables as heap tables, which are not indexed. The queries to create the production tables will result in a full table scan, so there is no reason to index the staging tables.
 
-Create the production tables with clustered columnstore indexes, which offer the best overall query performance. Columnstore indexes are optimized for queries that scan many records. Columnstore indexes don't perform as well for singleton lookups (that is, looking up a single row). If you need to perform frequent singleton lookups, you can add a non-clustered index to a table. Singleton lookups can run significantly faster using a non-clustered index. However, singleton lookups are less common in traditional data warehouse workloads than in OLTP systems.
+Create the production tables with clustered columnstore indexes, which offer the best overall query performance. Columnstore indexes are optimized for queries that scan many records. Columnstore indexes don't perform as well for singleton lookups (that is, looking up a single row). If you need to perform frequent singleton lookups, you can add a non-clustered index to a table. Singleton lookups can run significantly faster using a non-clustered index. However, singleton lookups are typically less common in data warehouse scenarios than OLTP workloads.
 
 PolyBase automatically takes advantage of parallelism in the warehouse. The load performance scales as you increase DWUs. For best performance, use a single load operation. There's no need to break up the input data into chunks and perform multiple concurrent loads.
 
@@ -136,7 +136,7 @@ Clustered columnstore tables do not support varchar(max), nvarchar(max), or varb
 
 In addition, PolyBase supports a maximum column size of varchar(8000), nvarchar(4000), and varbinary(8000). If you have data that exceeds these limits, one option is to break the data up into chunks when you export it, and then reassemble the chunks after import. Another option is to use bcp or bulk insert to load the files. However, this will be significantly slower than using PolyBase, because they don't take advantage of parallelism in the warehouse. 
   
-### Load semantic model
+### Load the semantic model
 
 Load the data into a tabular model in Azure Analysis Services.
 In this step, you create a semantic data model by using SQL Server Data Tools (SSDT). You can also create a model by importing it from a Power BI Desktop file.
@@ -148,7 +148,7 @@ When PowerBI connects to a data source, you can either import the data into Powe
 
 **Recommendations**
 
-Avoid running BI dashboard queries directly against the data warehouse. BI dashboards require very low response times, which direct queries against warehouse may not be able to meet. Also, refreshing the dashboard will count against the number of concurrent queries, which could impact performance. 
+Avoid running BI dashboard queries directly against the data warehouse. BI dashboards require very low response times, which direct queries against the warehouse may be unable to satisfy. Also, refreshing the dashboard will count against the number of concurrent queries, which could impact performance. 
 
 Azure Analysis Services is designed to handle the query requirements of a BI dashboard, so the recommended practice is to query Analysis Services from Power BI.
 
@@ -162,7 +162,7 @@ With SQL Data Warehouse, you can scale out your compute resources on demand. The
 
 For production workloads, we recommend the Standard Tier, because it supports partitioning and DirectQuery. Within a tier, the instance size determines the memory and processing power. Processing power is measured in Query Processing Units (QPUs). Monitor your QPU usage to select the appropriate tier; see [Monitor server metrics](/azure/analysis-services/analysis-services-monitor).
 
-Under high load, query performance can become degraded due to query concurrency. You can scale out Analysis Services by creating a pool of replicas to process queries, so that more queries can be performed concurrently. The work of processing the data model always happens on the primary server. By default, the primary server also handles queries. Optionally, you can designate the primary server to run processing exclusively, so that all queries are run against the query pool.  If you have high processing requirements, you should separate the processing from the query pool. If you have high query loads, and relatively light processing, you can include the primary server in the query pool. For more information, see [Azure Analysis Services scale-out](/azure/analysis-services/analysis-services-scale-out). 
+Under high load, query performance can become degraded due to query concurrency. You can scale out Analysis Services by creating a pool of replicas to process queries, so that more queries can be performed concurrently. The work of processing the data model always happens on the primary server. By default, the primary server also handles queries. Optionally, you can designate the primary server to run processing exclusively, so that the query pool handles all queries. If you have high processing requirements, you should separate the processing from the query pool. If you have high query loads, and relatively light processing, you can include the primary server in the query pool. For more information, see [Azure Analysis Services scale-out](/azure/analysis-services/analysis-services-scale-out). 
 
 To reduce the amount of unnecessary processing, consider using partitions to divide the tabular model into logical parts. Each partition can be processed separately. For more information, see [Partitions](/sql/analysis-services/tabular-models/partitions-ssas-tabular).
 
