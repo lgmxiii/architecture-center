@@ -23,11 +23,11 @@ The architecture consists of the following components.
 
 **Blob Storage**. Blob storage is used as a staging area to copy the data before loading it into SQL Data Warehouse.
 
-**Azure SQL Data Warehouse**. SQL Data Warehouse is a distributed system designed to perform analytics on large data. It supports massive parallel processing (MPP), which makes it suitable for running high-performance analytics. 
+**Azure SQL Data Warehouse**. [SQL Data Warehouse](/azure/sql-data-warehouse/) is a distributed system designed to perform analytics on large data. It supports massive parallel processing (MPP), which makes it suitable for running high-performance analytics. 
 
 Consider SQL Data Warehouse when you have large amounts of data (more than 1 TB) and are running an analytics workload that will benefit from parallelism. SQL Data Warehouse is not a good fit for OLTP workloads or smaller data sets (< 250GB). For data sets less than 250GB, consider Azure SQL Database or SQL Server. For more information, see [Data warehousing](../../data-guide/relational-data/data-warehousing.md).
 
-**Azure Analysis Services**. Analysis Services is a fully managed service that provides data modeling capabilities. Use Analysis Services to create a semantic model that users can query. Analysis Services is especially useful in a BI dashboard scenario. In this architecture, Analysis Service reads data from the data warehouse to process the semantic model, and efficiently serves dashboard queries. It also supports elastic concurrency, by scaling out replicas for faster query processing.
+**Azure Analysis Services**. [Analysis Services](/azure/analysis-services/) is a fully managed service that provides data modeling capabilities. Use Analysis Services to create a semantic model that users can query. Analysis Services is especially useful in a BI dashboard scenario. In this architecture, Analysis Services reads data from the data warehouse to process the semantic model, and efficiently serves dashboard queries. It also supports elastic concurrency, by scaling out replicas for faster query processing.
 
 Currently, Azure Analysis Services supports tabular models but not multidimensional models. Tabular models use relational modeling constructs (tables and columns), whereas multidimensional models use OLAP modeling constructs (cubes, dimensions, and measures). If you require multidimensional models, use SQL Server Analysis Services (SSAS). For more information, see [Comparing tabular and multidimensional solutions](/sql/analysis-services/comparing-tabular-and-multidimensional-solutions-ssas).
 
@@ -50,7 +50,7 @@ The next sections describe these stages in more detail.
 
 ### Export data from SQL Server
 
-Use the bcp (bulk copy program) utility to export data from SQL Server to flat files. The bcp utility is a fast way to create flat files from SQL tables. In this step, you select the columns that you want to export, but do not otherwise transform the data. Any data transformations should happen in SQL Data Warehouse. 
+Use the [bcp](/sql/tools/bcp-utility) (bulk copy program) utility to export data from SQL Server to flat files. The bcp utility is a fast way to create flat files from SQL tables. In this step, you select the columns that you want to export, but do not otherwise transform the data. Any data transformations should happen in SQL Data Warehouse. 
 
 **Recommendations**
 
@@ -58,12 +58,12 @@ If possible, schedule data extraction during off-peak hours, to minimize resourc
 
 Avoid running bcp on the database server. Instead, run it from another machine. Write the files to a local drive. Ensure that you have sufficient I/O resources to handle the concurrent writes. For best performance, export the files to dedicated fast storage drives.
 
-You can speed up the network transfer by saving the exported data in Gzip compressed format. However, loading compressed files into the warehouse is slower than loading uncompressed files, so there is a tradeoff between faster network tranfer versus faster loading. If you decide to use Gzip compression, don't create a single Gzip file. Instead, split the data into multiple compressed files.
+You can speed up the network transfer by saving the exported data in Gzip compressed format. However, loading compressed files into the warehouse is slower than loading uncompressed files, so there is a tradeoff between faster network transfer versus faster loading. If you decide to use Gzip compression, don't create a single Gzip file. Instead, split the data into multiple compressed files.
 
 ### Copy flat files into blob storage
 
-Use the AzCopy utility to copy the files over the network into Azure blob storage. 
-AzCopy utility is designed for high-performance copying of data to and from Azure Storage.
+Use the [AzCopy](/azure/storage/common/storage-use-azcopy) utility to copy the files over the network into Azure blob storage. 
+The AzCopy utility is designed for high-performance copying of data to and from Azure Storage.
 
 **Recommendations**
 
@@ -73,13 +73,13 @@ Don't run AzCopy on the same machine that runs your production workloads, becaus
 
 Test the upload first to see what the upload speed is like. You can use the /NC option in AzCopy to specify the number of concurrent copy operations. Start with the default value, then experiment with this setting to tune the performance. In a low-bandwidth environment, too many concurrent operations can overwhelm the network connection and prevent the operations from fully completing.  
 
-AzCopy moves data to storage over the public internet. If this isn't fast enough, consider setting up an ExpressRoute circuit. ExpressRoute is a service that routes your data through a dedicated private connection to Azure. Another option, if your network connection is too slow, is to physically ship the data on disk to an Azure datacenter. For more information, see [Transferring data to and from Azure](/azure/architecture/data-guide/scenarios/data-transfer).
+AzCopy moves data to storage over the public Internet. If this isn't fast enough, consider setting up an [ExpressRoute](/azure/expressroute/) circuit. ExpressRoute is a service that routes your data through a dedicated private connection to Azure. Another option, if your network connection is too slow, is to physically ship the data on disk to an Azure datacenter. For more information, see [Transferring data to and from Azure](/azure/architecture/data-guide/scenarios/data-transfer).
 
-During a copy operation, AzCopy creates a temporary journal file, which enables AzCopy to restart the operation if it gets interrupted (for example, due to a network error). Make sure there is enough disk space to store the journal files. You can specify the location using the /Z option.
+During a copy operation, AzCopy creates a temporary journal file, which enables AzCopy to restart the operation if it gets interrupted (for example, due to a network error). Make sure there is enough disk space to store the journal files. You can use the /Z option to specify where the journal files are written.
 
 ### Load data into SQL Data Warehouse
 
-Use PolyBase to load the files from blob storage into the data warehouse. PolyBase is designed to leverage the MPP (Massively Parallel Processing) architecture of SQL Data Warehouse, so it is the fastest way to load data in SQL Data Warehouse. 
+Use [PolyBase](/sql/relational-databases/polybase/polybase-guide) to load the files from blob storage into the data warehouse. PolyBase is designed to leverage the MPP (Massively Parallel Processing) architecture of SQL Data Warehouse, which makes it the fastest way to load data into SQL Data Warehouse. 
 
 This stage has the following steps:
 
@@ -126,15 +126,15 @@ FROM ext.Application_PaymentMethods
 
 Create the staging tables as heap tables, which are not indexed. The queries that create the production tables will result in a full table scan, so there is no reason to index the staging tables.
 
-Create the production tables with clustered columnstore indexes, which offer the best overall query performance. Columnstore indexes are optimized for queries that scan many records. Columnstore indexes don't perform as well for singleton lookups (that is, looking up a single row). If you need to perform frequent singleton lookups, you can add a non-clustered index to a table. Singleton lookups can run significantly faster using a non-clustered index. However, singleton lookups are typically less common in data warehouse scenarios than OLTP workloads.
+Create the production tables with clustered columnstore indexes, which offer the best overall query performance. Columnstore indexes are optimized for queries that scan many records. Columnstore indexes don't perform as well for singleton lookups (that is, looking up a single row). If you need to perform frequent singleton lookups, you can add a non-clustered index to a table. Singleton lookups can run significantly faster using a non-clustered index. However, singleton lookups are typically less common in data warehouse scenarios than OLTP workloads. For more information, see [Indexing tables in SQL Data Warehouse](/azure/sql-data-warehouse/sql-data-warehouse-tables-index).
 
 PolyBase automatically takes advantage of parallelism in the warehouse. The load performance scales as you increase DWUs. For best performance, use a single load operation. There is no performance benefit to breaking the input data into chunks and running multiple concurrent loads.
 
-PolyBase can read Gzip compressed files. However, only a single reader is used per compressed file, because uncompressing the file is a single threaded operation. Therefore, avoid loading a single large compressed file. Instead, split the data into multiple compressed files, in order to take advantage of parallelism. 
+PolyBase can read Gzip compressed files. However, only a single reader is used per compressed file, because uncompressing the file is a single-threaded operation. Therefore, avoid loading a single large compressed file. Instead, split the data into multiple compressed files, in order to take advantage of parallelism. 
 
 Clustered columnstore tables do not support `varchar(max)`, `nvarchar(max)`, or `varbinary(max)` data types. In that case, consider a heap or clustered index. You might put this data into a separate table.
 
-In addition, PolyBase supports a maximum column size of `varchar(8000)`, `nvarchar(4000)`, and `varbinary(8000)`. If you have data that exceeds these limits, one option is to break the data up into chunks when you export it, and then reassemble the chunks after import. Another option is to use bcp or bulk insert to load the files. However, this will be significantly slower than using PolyBase, because it doesn't take advantage of parallelism in the warehouse. 
+In addition, PolyBase supports a maximum column size of `varchar(8000)`, `nvarchar(4000)`, or `varbinary(8000)`. If you have data that exceeds these limits, one option is to break the data up into chunks when you export it, and then reassemble the chunks after import. Another option is to use bcp or bulk insert to load the files. However, this will be significantly slower than using PolyBase, because it doesn't take advantage of parallelism. 
   
 ### Load the semantic model
 
@@ -158,7 +158,7 @@ With SQL Data Warehouse, you can scale out your compute resources on demand. The
 
 ### Analysis Services
 
-For production workloads, we recommend the Standard Tier, because it supports partitioning and DirectQuery. Within a tier, the instance size determines the memory and processing power. Processing power is measured in Query Processing Units (QPUs). Monitor your QPU usage to select the appropriate size. See [Monitor server metrics](/azure/analysis-services/analysis-services-monitor).
+For production workloads, we recommend the Standard Tier, because it supports partitioning and DirectQuery. Within a tier, the instance size determines the memory and processing power. Processing power is measured in Query Processing Units (QPUs). Monitor your QPU usage to select the appropriate size. For more information, see [Monitor server metrics](/azure/analysis-services/analysis-services-monitor).
 
 Under high load, query performance can become degraded due to query concurrency. You can scale out Analysis Services by creating a pool of replicas to process queries, so that more queries can be performed concurrently. The work of processing the data model always happens on the primary server. By default, the primary server also handles queries. Optionally, you can designate the primary server to run processing exclusively, so that the query pool handles all queries. If you have high processing requirements, you should separate the processing from the query pool. If you have high query loads, and relatively light processing, you can include the primary server in the query pool. For more information, see [Azure Analysis Services scale-out](/azure/analysis-services/analysis-services-scale-out). 
 
@@ -168,11 +168,7 @@ To reduce the amount of unnecessary processing, consider using partitions to div
 
 ### IP whitelisting of Analysis Services clients
 
-Currently Azure Analysis Services does support VNet service endpoints. Consider using the Analysis Services firewall feature to whitelist client IP addresses. If enabled, the firewall blocks all client connections other than those specified in the firewall rules. 
-
-Note: The default rules whitelist the Power BI service, but you can disable this rule if desired.
-
-For more information, see [Hardening Azure Analysis Services with the new firewall capability](https://azure.microsoft.com/blog/hardening-azure-analysis-services-with-the-new-firewall-capability/).
+Currently Azure Consider using the Analysis Services firewall feature to whitelist client IP addresses. If enabled, the firewall blocks all client connections other than those specified in the firewall rules. The default rules whitelist the Power BI service, but you can disable this rule if desired. For more information, see [Hardening Azure Analysis Services with the new firewall capability](https://azure.microsoft.com/blog/hardening-azure-analysis-services-with-the-new-firewall-capability/).
 
 ### Authorization
 
@@ -181,11 +177,13 @@ Azure Analysis Services uses Azure Active Directory (Azure AD) to authenticate u
 - Hide tables or individual columns. 
 - Hide individual rows based on filter expressions. 
 
+For more information, see [Manage database roles and users](/azure/analysis-services/analysis-services-database-users).
+
 ## Deploy the solution
 
 A deployment for this reference architecture is available on [GitHub][ref-arch-repo-folder]. It deploys the following:
 
-  * A Windows virtual machine to simulate an on-premises database server. It includes SQL Server 2017 and related tools, along with Power BI Desktop.
+  * A Windows VM to simulate an on-premises database server. It includes SQL Server 2017 and related tools, along with Power BI Desktop.
   * An Azure storage account that provides Blob storage to hold data exported from the SQL Server database.
   * An Azure SQL Data Warehouse instance.
   * An Azure Analysis Services instance.
@@ -204,7 +202,7 @@ A deployment for this reference architecture is available on [GitHub][ref-arch-r
 
 ### Deploy the simulated on-premises server
 
-First you'll deploy a virtual machine as a simulated on-premises server, which includes SQL Server 2017 and related tools. This step also loads the sample [Wide World Importers OLTP database](/sql/sample/world-wide-importers/wide-world-importers-oltp-database) into SQL Server.
+First you'll deploy a VM as a simulated on-premises server, which includes SQL Server 2017 and related tools. This step also loads the sample [Wide World Importers OLTP database](/sql/sample/world-wide-importers/wide-world-importers-oltp-database) into SQL Server.
 
 1. Navigate to the `data\enterprise-bi-sqldw\onprem\templates` folder of the repository you downloaded in the prerequisites above.
 
@@ -251,7 +249,7 @@ This step provisions Azure SQL Data Warehouse and Azure Analysis Services, along
 
 In this step, you will run a PowerShell script that uses bcp to export the SQL database to flat files on the VM, and then uses AzCopy to copy those files into Azure Blob Storage.
 
-1. Use Remote Desktop to connect to the simulated on-premises VM you created previously.
+1. Use Remote Desktop to connect to the simulated on-premises VM.
 
 2. While logged into the VM, run the following commands from a PowerShell window.  
 
@@ -320,11 +318,11 @@ In this step, you will create a tabular model that imports data from the data wa
 
 7. Select **Azure SQL Data Warehouse** and click **Connect**.
 
-8. For **Server**, enter fully qualified name of your Azure SQL Data Warehouse server. For **Database**, enter `wwi`. Click **OK**.
+8. For **Server**, enter the fully qualified name of your Azure SQL Data Warehouse server. For **Database**, enter `wwi`. Click **OK**.
 
-9. In the next dialog box, choose **Database** authentication and enter your Azure SQL Data Warehouse admin user name and password, and click **OK**.
+9. In the next dialog, choose **Database** authentication and enter your Azure SQL Data Warehouse user name and password, and click **OK**.
 
-10. In the **Navigator** dialog box, select the checkboxes for **prd.CityDimensions**, **prd.DateDimensions**, and **prd.SalesFact**. 
+10. In the **Navigator** dialog, select the checkboxes for **prd.CityDimensions**, **prd.DateDimensions**, and **prd.SalesFact**. 
 
     ![](./images/analysis-services-import.png)
 
