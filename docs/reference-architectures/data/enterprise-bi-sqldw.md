@@ -140,9 +140,14 @@ In addition, PolyBase supports a maximum column size of `varchar(8000)`, `nvarch
 
 Load the data into a tabular model in Azure Analysis Services. In this step, you create a semantic data model by using SQL Server Data Tools (SSDT). You can also create a model by importing it from a Power BI Desktop file. Because SQL Data Warehouse does not support foreign keys, you must add the relationships to the semantic model, so that you can join across tables.
 
-### Use PowerBI to visualize the data
+### Use Power BI to visualize the data
 
-When PowerBI connects to a data source, you can either import the data into PowerBI or use DirectQuery, which sends queries directly to the data source. When connecting to Azure Analysis Services, we recommend DirectQuery because it doesn't require copying data into the PowerBI model. Also, using DirectQuery ensures that results are always consistent with the latest source data. For more information, see [Connect with Power BI](/azure/analysis-services/analysis-services-connect-pbi).
+Power BI supports two options for connecting to Azure Analysis Services:
+
+- Import. The data is imported into the Power BI model.
+- Live Connection. Data is pulled directly from Analysis Services.
+
+We recommend Live Connection because it doesn't require copying data into the Power BI model. Also, using DirectQuery ensures that results are always consistent with the latest source data. For more information, see [Connect with Power BI](/azure/analysis-services/analysis-services-connect-pbi).
 
 **Recommendations**
 
@@ -158,7 +163,7 @@ With SQL Data Warehouse, you can scale out your compute resources on demand. The
 
 ### Analysis Services
 
-For production workloads, we recommend the Standard Tier, because it supports partitioning and DirectQuery. Within a tier, the instance size determines the memory and processing power. Processing power is measured in Query Processing Units (QPUs). Monitor your QPU usage to select the appropriate size. For more information, see [Monitor server metrics](/azure/analysis-services/analysis-services-monitor).
+For production workloads, we recommend the Standard Tier for Azure Analysis Services, because it supports partitioning and DirectQuery. Within a tier, the instance size determines the memory and processing power. Processing power is measured in Query Processing Units (QPUs). Monitor your QPU usage to select the appropriate size. For more information, see [Monitor server metrics](/azure/analysis-services/analysis-services-monitor).
 
 Under high load, query performance can become degraded due to query concurrency. You can scale out Analysis Services by creating a pool of replicas to process queries, so that more queries can be performed concurrently. The work of processing the data model always happens on the primary server. By default, the primary server also handles queries. Optionally, you can designate the primary server to run processing exclusively, so that the query pool handles all queries. If you have high processing requirements, you should separate the processing from the query pool. If you have high query loads, and relatively light processing, you can include the primary server in the query pool. For more information, see [Azure Analysis Services scale-out](/azure/analysis-services/analysis-services-scale-out). 
 
@@ -174,8 +179,8 @@ Currently Azure Consider using the Analysis Services firewall feature to whiteli
 
 Azure Analysis Services uses Azure Active Directory (Azure AD) to authenticate users who connect to an Analysis Services server. You can restrict what data a particular user is able to view, by creating roles and then assigning Azure AD users or groups to those roles. For each role, you can: 
 
-- Hide tables or individual columns. 
-- Hide individual rows based on filter expressions. 
+- Protect tables or individual columns. 
+- Protect individual rows based on filter expressions. 
 
 For more information, see [Manage database roles and users](/azure/analysis-services/analysis-services-database-users).
 
