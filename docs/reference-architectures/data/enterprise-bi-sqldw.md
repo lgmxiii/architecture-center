@@ -25,8 +25,6 @@ The architecture consists of the following components.
 
 **Azure SQL Data Warehouse**. [SQL Data Warehouse](/azure/sql-data-warehouse/) is a distributed system designed to perform analytics on large data. It supports massive parallel processing (MPP), which makes it suitable for running high-performance analytics. 
 
-Consider SQL Data Warehouse when you have large amounts of data (more than 1 TB) and are running an analytics workload that will benefit from parallelism. SQL Data Warehouse is not a good fit for OLTP workloads or smaller data sets (< 250GB). For data sets less than 250GB, consider Azure SQL Database or SQL Server. For more information, see [Data warehousing](../../data-guide/relational-data/data-warehousing.md).
-
 **Azure Analysis Services**. [Analysis Services](/azure/analysis-services/) is a fully managed service that provides data modeling capabilities. Use Analysis Services to create a semantic model that users can query. Analysis Services is especially useful in a BI dashboard scenario. In this architecture, Analysis Services reads data from the data warehouse to process the semantic model, and efficiently serves dashboard queries. It also supports elastic concurrency, by scaling out replicas for faster query processing.
 
 Currently, Azure Analysis Services supports tabular models but not multidimensional models. Tabular models use relational modeling constructs (tables and columns), whereas multidimensional models use OLAP modeling constructs (cubes, dimensions, and measures). If you require multidimensional models, use SQL Server Analysis Services (SSAS). For more information, see [Comparing tabular and multidimensional solutions](/sql/analysis-services/comparing-tabular-and-multidimensional-solutions-ssas).
@@ -39,18 +37,22 @@ Currently, Azure Analysis Services supports tabular models but not multidimensio
  
 This reference architecture uses the [WorldWideImporters](/sql/sample/world-wide-importers/wide-world-importers-oltp-database) sample database as data source. The data pipeline has the following stages:
 
-1. Export the data from SQL Server to flat files.
-2. Copy the flat files to Azure Blob Storage.
-3. Load the data into SQL Data Warehouse and transform it into a star schema.
-4. Load the semantic model into Analysis Services.
+1. Export the data from SQL Server to flat files (bcp utility).
+2. Copy the flat files to Azure Blob Storage (AzCopy).
+3. Load the data into SQL Data Warehouse (PolyBase).
+4. Transform the data into a star schema (T-SQL).
+5. Load a semantic model into Analysis Services (SQL Server Data Tools).
 
 ![](./images/enterprise-bi-sqldw-pipeline.png)
  
+> [!NOTE]
+> For steps 1 &ndash; 3, consider using Redgate Data Platform Studio. Data Platform Studio applies the most appropriate compatibility fixes and optimizations, so it's the quickest way to get started with SQL Data Warehouse. For more information, see [Load data with Redgate Data Platform Studio](/azure/sql-data-warehouse/sql-data-warehouse-load-with-redgate). 
+
 The next sections describe these stages in more detail.
 
 ### Export data from SQL Server
 
-Use the [bcp](/sql/tools/bcp-utility) (bulk copy program) utility to export data from SQL Server to flat files. The bcp utility is a fast way to create flat files from SQL tables. In this step, you select the columns that you want to export, but do not otherwise transform the data. Any data transformations should happen in SQL Data Warehouse. 
+The [bcp](/sql/tools/bcp-utility) (bulk copy program) utility is a fast way to create flat text files from SQL tables. In this step, you select the columns that you want to export, but don't transform the data. Any data transformations should happen in SQL Data Warehouse.
 
 **Recommendations**
 
@@ -62,8 +64,7 @@ You can speed up the network transfer by saving the exported data in Gzip compre
 
 ### Copy flat files into blob storage
 
-Use the [AzCopy](/azure/storage/common/storage-use-azcopy) utility to copy the files over the network into Azure blob storage. 
-The AzCopy utility is designed for high-performance copying of data to and from Azure Storage.
+The [AzCopy](/azure/storage/common/storage-use-azcopy) utility is designed for high-performance copying of data to into Azure blob storage.
 
 **Recommendations**
 
@@ -84,57 +85,40 @@ Use [PolyBase](/sql/relational-databases/polybase/polybase-guide) to load the fi
 This stage has the following steps:
 
 1. Create a set of external tables for the data. An external table is a table that points to data stored outside of the warehouse &mdash; in this case, the flat files in blob storage. This step does not move any data into the warehouse.
-2. Create staging tables, and use an INSERT INTO SELECT query to load the data from the external tables into the staging tables. This step copies the data into the warehouse.  
+2. Create staging tables, and load the data from the external tables into the staging tables. This step copies the data into the warehouse.
 3. Transform the data and move it into production tables. In this step, the data is transformed into a star schema with dimension tables and fact tables, suitable for semantic modeling.
 
-The external tables and staging tables are temporary tables. You can delete them after the production tables are created. For more information, see [Load data with PolyBase in SQL Data Warehouse](/azure/sql-data-warehouse/sql-data-warehouse-get-started-load-with-polybase).
-
-The following queries show how to create an external table and the corresponding staging table, and load the data into the staging table.
-
-```sql
-CREATE EXTERNAL TABLE [ext].[Application_PaymentMethods]
-(
- [PaymentMethodID] [int] NOT NULL,
- [PaymentMethodName] [nvarchar](50) NOT NULL,
- [LastEditedBy] [int] NOT NULL,
- [ValidFrom] [datetime2](7) NOT NULL,
- [ValidTo] [datetime2](7) NOT NULL
-)
-WITH (DATA_SOURCE = [WAREHOUSEEXTERNALDATASOURCE],LOCATION = N'/WideWorldImporters_Application_PaymentMethods/',FILE_FORMAT = [UNCOMPRESSEDCSV],REJECT_TYPE = VALUE,REJECT_VALUE = 0)
-
-CREATE TABLE stg.Application_PaymentMethods
-(
- [PaymentMethodID] [int] NOT NULL,
- [PaymentMethodName] [nvarchar](50) NOT NULL,
- [LastEditedBy] [int] NOT NULL,
- [ValidFrom] [datetime2](7) NOT NULL,
- [ValidTo] [datetime2](7) NOT NULL
-)
-WITH (HEAP);
-
-INSERT INTO stg.Application_PaymentMethods
-SELECT
- [PaymentMethodID] ,
- [PaymentMethodName] ,
- [LastEditedBy] ,
- [ValidFrom] ,
- [ValidTo]
-FROM ext.Application_PaymentMethods
-```
+For more information, see [Best practices for loading data into Azure SQL Data Warehouse](/azure/sql-data-warehouse/guidance-for-loading-data).
 
 **Recommendations**
+
+Consider SQL Data Warehouse when you have large amounts of data (more than 1 TB) and are running an analytics workload that will benefit from parallelism. SQL Data Warehouse is not a good fit for OLTP workloads or smaller data sets (< 250GB). For data sets less than 250GB, consider Azure SQL Database or SQL Server. For more information, see [Data warehousing](../../data-guide/relational-data/data-warehousing.md).
 
 Create the staging tables as heap tables, which are not indexed. The queries that create the production tables will result in a full table scan, so there is no reason to index the staging tables.
 
 Create the production tables with clustered columnstore indexes, which offer the best overall query performance. Columnstore indexes are optimized for queries that scan many records. Columnstore indexes don't perform as well for singleton lookups (that is, looking up a single row). If you need to perform frequent singleton lookups, you can add a non-clustered index to a table. Singleton lookups can run significantly faster using a non-clustered index. However, singleton lookups are typically less common in data warehouse scenarios than OLTP workloads. For more information, see [Indexing tables in SQL Data Warehouse](/azure/sql-data-warehouse/sql-data-warehouse-tables-index).
 
+> [!NOTE]
+> Clustered columnstore tables do not support `varchar(max)`, `nvarchar(max)`, or `varbinary(max)` data types. In that case, consider a heap or clustered index. You might put this data into a separate table.
+
 PolyBase automatically takes advantage of parallelism in the warehouse. The load performance scales as you increase DWUs. For best performance, use a single load operation. There is no performance benefit to breaking the input data into chunks and running multiple concurrent loads.
 
 PolyBase can read Gzip compressed files. However, only a single reader is used per compressed file, because uncompressing the file is a single-threaded operation. Therefore, avoid loading a single large compressed file. Instead, split the data into multiple compressed files, in order to take advantage of parallelism. 
 
-Clustered columnstore tables do not support `varchar(max)`, `nvarchar(max)`, or `varbinary(max)` data types. In that case, consider a heap or clustered index. You might put this data into a separate table.
+Be aware of the following limitations:
 
-In addition, PolyBase supports a maximum column size of `varchar(8000)`, `nvarchar(4000)`, or `varbinary(8000)`. If you have data that exceeds these limits, one option is to break the data up into chunks when you export it, and then reassemble the chunks after import. Another option is to use bcp or bulk insert to load the files. However, this will be significantly slower than using PolyBase, because it doesn't take advantage of parallelism. 
+- PolyBase supports a maximum column size of `varchar(8000)`, `nvarchar(4000)`, or `varbinary(8000)`. If you have data that exceeds these limits, one option is to break the data up into chunks when you export it, and then reassemble the chunks after import. 
+
+- PolyBase uses a fixed row terminator of \n or newline.  
+
+- Your source data schema might contain data types that are not supported in SQL Data Warehouse.
+
+To work around these limitations, you can create a stored procedure that performs the necessary conversions. Reference this stored procedure when you run bcp. Alternatively, [Redgate Data Platform Studio](/azure/sql-data-warehouse/sql-data-warehouse-load-with-redgate) automatically converts data types that aren’t supported in SQL Data Warehouse.
+
+For more information, see the following articles:
+
+- [Migrate your schemas to SQL Data Warehouse](/azure/sql-data-warehouse/sql-data-warehouse-migrate-schema)
+- [Guidance for defining data types for tables in SQL Data Warehouse](/azure/sql-data-warehouse/sql-data-warehouse-tables-data-types)
   
 ### Load the semantic model
 
